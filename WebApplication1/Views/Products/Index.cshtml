@@ -1,0 +1,25 @@
+﻿@page
+@model IEnumerable<Product>
+
+@{
+    ViewData["Title"] = "Clothing Shop";
+}
+
+<h2 class="mb-4">Available Products</h2>
+
+<div class="row">
+@foreach (var item in Model)
+{
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name" />
+            <div class="card-body">
+                <h5 class="card-title">@item.Name</h5>
+                <p class="card-text">@item.Description</p>
+                <p><strong>$@item.Price</strong></p>
+                <a href="@Url.Action("Details", "Products", new { id = item.Id })" class="btn btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+}
+</div>

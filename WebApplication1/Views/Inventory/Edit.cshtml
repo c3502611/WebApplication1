@@ -1,0 +1,12 @@
+﻿@model WebApplication1.Models.Product
+@{
+    ViewData["Title"] = "Edit Product";
+}
+
+<h2>Edit Product</h2>
+
+<form asp-action="Edit" method="post" class="w-75">
+    <input type="hidden" asp-for="Id" />
+    <partial name="_ProductFormPartial" />
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+</form>

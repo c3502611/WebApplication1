@@ -1,0 +1,11 @@
+﻿@model WebApplication1.Models.Product
+@{
+    ViewData["Title"] = "Add Product";
+}
+
+<h2>Add Product</h2>
+
+<form asp-action="Add" method="post" class="w-75">
+    <partial name="_ProductFormPartial" />
+    <button type="submit" class="btn btn-success">Add</button>
+</form>
