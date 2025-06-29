@@ -13,7 +13,7 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public IActionResult Login(string username, string password)
         {
-            // Mock login check
+
             if (username == "admin" && password == "password")
             {
                 TempData["User"] = "Admin";

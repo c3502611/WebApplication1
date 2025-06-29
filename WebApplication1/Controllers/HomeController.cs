@@ -57,7 +57,7 @@ namespace WebApplication1.Controllers
                     .ToList();
             }
 
-            return View("Index", products); // reuse your main product list view
+            return View("Index", products);
         }
 
     }

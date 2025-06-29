@@ -8,10 +8,8 @@ public class CartController : Controller
     [HttpPost]
     public IActionResult AddToCart(int productId, int quantity = 1)
     {
-        // Get cart from session or create new list
         var cart = HttpContext.Session.GetObject<List<CartItem>>("Cart") ?? new List<CartItem>();
 
-        // Get product from mock data (fresh copy each time)
         var product = MockData.GetProducts().FirstOrDefault(p => p.Id == productId);
 
         if (product == null)
@@ -20,7 +18,6 @@ public class CartController : Controller
             return RedirectToAction("Index", "Home");
         }
 
-        // Check if already in cart
         var existingItem = cart.FirstOrDefault(c => c.ProductId == productId);
 
         if (existingItem != null)
@@ -39,10 +36,10 @@ public class CartController : Controller
             });
         }
 
-        // Save updated cart back to session
+
         HttpContext.Session.SetObject("Cart", cart);
 
-        // Redirect to product list (or product page if you have one)
+    
         return RedirectToAction("Index", "Home");
     }
 

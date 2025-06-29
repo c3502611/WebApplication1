@@ -5,7 +5,7 @@ namespace WebApplication1.Controllers
 {
     public class InventoryController : Controller
     {
-        private static List<Product> _products = MockData.GetProducts(); // Mock in-memory list
+        private static List<Product> _products = MockData.GetProducts();
 
         public IActionResult Index()
         {
