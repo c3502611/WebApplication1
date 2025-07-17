@@ -1,21 +1,29 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
+using WebApplication1.Data;
+using System.Linq;
 
 namespace WebApplication1.Controllers
 {
     public class InventoryController : Controller
     {
-        private static List<Product> _products = MockData.GetProducts();
+        private readonly AppDbContext _context;
+
+        public InventoryController(AppDbContext context)
+        {
+            _context = context;
+        }
 
         public IActionResult Index()
         {
-            if (TempData["Role"]?.ToString() != "Admin")
+            if (HttpContext.Session.GetString("Role") != "Admin")
                 return RedirectToAction("AccessDenied", "Admin");
 
             TempData.Keep("User");
             TempData.Keep("Role");
 
-            return View(_products);
+            var products = _context.Products.ToList();
+            return View(products);
         }
 
         [HttpGet]
@@ -27,15 +35,19 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public IActionResult Add(Product product)
         {
-            product.Id = _products.Max(p => p.Id) + 1;
-            _products.Add(product);
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                _context.Products.Add(product);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(product);
         }
 
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            var product = _products.FirstOrDefault(p => p.Id == id);
+            var product = _context.Products.Find(id);
             if (product == null) return NotFound();
             return View(product);
         }
@@ -43,23 +55,19 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public IActionResult Edit(Product updatedProduct)
         {
-            var product = _products.FirstOrDefault(p => p.Id == updatedProduct.Id);
-            if (product == null) return NotFound();
-
-            product.Name = updatedProduct.Name;
-            product.Description = updatedProduct.Description;
-            product.Category = updatedProduct.Category;
-            product.Price = updatedProduct.Price;
-            product.StockQuantity = updatedProduct.StockQuantity;
-            product.ImageUrl = updatedProduct.ImageUrl;
-
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                _context.Products.Update(updatedProduct);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(updatedProduct);
         }
 
         [HttpGet]
         public IActionResult Delete(int id)
         {
-            var product = _products.FirstOrDefault(p => p.Id == id);
+            var product = _context.Products.Find(id);
             if (product == null) return NotFound();
             return View(product);
         }
@@ -67,14 +75,14 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public IActionResult DeleteConfirmed(int id)
         {
-            var product = _products.FirstOrDefault(p => p.Id == id);
+            var product = _context.Products.Find(id);
             if (product != null)
             {
-                _products.Remove(product);
+                _context.Products.Remove(product);
+                _context.SaveChanges();
             }
 
             return RedirectToAction("Index");
         }
-
     }
 }

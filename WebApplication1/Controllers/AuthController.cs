@@ -1,10 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
+using WebApplication1.Data;
 
 namespace WebApplication1.Controllers
 {
     public class AuthController : Controller
     {
+        private readonly AppDbContext _context;
+
+        public AuthController(AppDbContext context)
+        {
+            _context = context;
+        }
+
         [HttpGet]
         public IActionResult Login()
         {
@@ -14,16 +22,19 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public IActionResult Login(string username, string password)
         {
-            if (username == "admin" && password == "password")
+            var user = _context.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
+
+            if (user != null)
             {
-                TempData["User"] = "Admin";
-                TempData["Role"] = "Admin";
+                HttpContext.Session.SetString("User", user.Username);
+                HttpContext.Session.SetString("Role", user.Role);
                 return RedirectToAction("Index", "Home");
             }
-            else if (username == "customer" && password == "password")
+
+            if (username == "admin" && password == "password")
             {
-                TempData["User"] = "Customer";
-                TempData["Role"] = "Customer";
+                HttpContext.Session.SetString("User", "Admin");
+                HttpContext.Session.SetString("Role", "Admin");
                 return RedirectToAction("Index", "Home");
             }
 
@@ -31,10 +42,10 @@ namespace WebApplication1.Controllers
             return View();
         }
 
+
         public IActionResult Logout()
         {
-            TempData.Remove("User");
-            TempData.Remove("Role");
+            HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
         }
 
@@ -45,9 +56,9 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
-        public IActionResult Register(string username, string password, string email, string confirmPassword)
+        public IActionResult Register(string username, string email, string password, string confirmPassword)
         {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(email))
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
                 ViewBag.Error = "All fields are required.";
                 return View();
@@ -59,12 +70,19 @@ namespace WebApplication1.Controllers
                 return View();
             }
 
-            TempData["User"] = username;
-            TempData["Role"] = "Customer";
-            TempData["RegisterSuccess"] = $"User {username} registered successfully with email {email}.";
+            var newUser = new User
+            {
+                Username = username,
+                Email = email,
+                Password = password,
+                Role = "Customer"
+            };
 
-            return RedirectToAction("Index", "Home"); 
+            _context.Users.Add(newUser);
+            _context.SaveChanges();
+
+            TempData["RegisterSuccess"] = $"Welcome {username}! Your account has been created.";
+            return RedirectToAction("Index", "Home");
         }
     }
 }
-

@@ -4,22 +4,10 @@ namespace WebApplication1.Models
 {
     public class Register
     {
-        [Required]
-        [Display(Name = "Username")]
+        public int Id { get; set; } 
         public string Username { get; set; }
-
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email Address")]
         public string Email { get; set; }
-
-        [Required]
-        [DataType(DataType.Password)]
         public string Password { get; set; }
-
-        [Required]
-        [DataType(DataType.Password)]
-        [Compare("Password", ErrorMessage = "Passwords do not match.")]
-        public string ConfirmPassword { get; set; }
+        public string Role { get; set; } = "Customer";
     }
 }

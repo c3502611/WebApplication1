@@ -8,6 +8,11 @@ namespace WebApplication1.Controllers
     {
         public IActionResult Dashboard()
         {
+            if (TempData["Role"]?.ToString() != "Admin")
+            {
+                return RedirectToAction("AccessDenied", "Auth");
+            }
+
             var products = MockData.GetProducts();
             var orders = MockData.GetOrders();
 
@@ -16,5 +21,6 @@ namespace WebApplication1.Controllers
 
             return View();
         }
+
     }
 }

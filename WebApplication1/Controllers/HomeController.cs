@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.Data;
 using WebApplication1.Models;
 using System.Linq;
 
@@ -6,24 +7,29 @@ namespace WebApplication1.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly AppDbContext _context;
+
+        public HomeController(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Index(string query)
         {
-            var products = MockData.GetProducts();
+            IQueryable<Product> products = _context.Products;
 
             if (!string.IsNullOrWhiteSpace(query))
             {
-                query = query.ToLower();
-                products = products
-                    .Where(p => p.Name.ToLower().Contains(query) || p.Description.ToLower().Contains(query))
-                    .ToList();
+                products = products.Where(p => p.Name.Contains(query) || p.Description.Contains(query));
             }
 
-            return View(products);
+            var result = products.OrderByDescending(p => p.Id).ToList();
+            return View(result);
         }
 
         public IActionResult Product(int id)
         {
-            var product = MockData.GetProducts().FirstOrDefault(p => p.Id == id);
+            var product = _context.Products.FirstOrDefault(p => p.Id == id);
             if (product == null) return NotFound();
 
             TempData.Keep("User");
