@@ -1,16 +1,24 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
+using WebApplication1.Data; // for AppDbContext
+using System.Collections.Generic;
+using System.Linq;
 
 public class CartController : Controller
-
 {
-    [HttpPost]
+    private readonly AppDbContext _context;
+
+    public CartController(AppDbContext context)
+    {
+        _context = context;
+    }
+
     [HttpPost]
     public IActionResult AddToCart(int productId, int quantity = 1)
     {
         var cart = HttpContext.Session.GetObject<List<CartItem>>("Cart") ?? new List<CartItem>();
 
-        var product = MockData.GetProducts().FirstOrDefault(p => p.Id == productId);
+        var product = _context.Products.FirstOrDefault(p => p.Id == productId);
 
         if (product == null)
         {
@@ -36,13 +44,13 @@ public class CartController : Controller
             });
         }
 
-
         HttpContext.Session.SetObject("Cart", cart);
 
-    
+        TempData.Keep("User");
+        TempData.Keep("Role");
+
         return RedirectToAction("Index", "Home");
     }
-
 
     public IActionResult Index()
     {
@@ -96,13 +104,12 @@ public class CartController : Controller
             return RedirectToAction("Index");
         }
 
-
         HttpContext.Session.Remove("Cart");
 
         TempData.Keep("User");
         TempData.Keep("Role");
         ViewBag.Message = "Thank you! Your order has been placed.";
 
-        return View(cart); // If your Confirm.cshtml shows a summary
+        return View(cart);
     }
 }
