@@ -26,7 +26,18 @@
                 <td>@product.Category</td>
                 <td>@product.Price</td>
                 <td>@product.StockQuantity</td>
-                <td><img src="@product.ImageUrl" alt="Image" style="max-width: 60px;" /></td>
+                <td>
+                    @if (product.ImageData != null && !string.IsNullOrEmpty(product.ImageMimeType))
+                    {
+                        <img src="@Url.Action("GetImage", "Inventory", new { id = product.Id })"
+                             alt="Image"
+                             style="max-width: 60px; max-height: 60px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <span class="text-muted">No image</span>
+                    }
+                </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@product.Id" class="btn btn-warning btn-sm">Edit</a>
                     <a asp-action="Delete" asp-route-id="@product.Id" class="btn btn-danger btn-sm">Delete</a>

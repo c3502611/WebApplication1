@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
-using WebApplication1.Data; // for AppDbContext
+using WebApplication1.Data; 
 using System.Collections.Generic;
 using System.Linq;
 
@@ -34,13 +34,19 @@ public class CartController : Controller
         }
         else
         {
+            string base64Image = null;
+            if (product.ImageData != null && !string.IsNullOrEmpty(product.ImageMimeType))
+            {
+                base64Image = $"data:{product.ImageMimeType};base64,{Convert.ToBase64String(product.ImageData)}";
+            }
+
             cart.Add(new CartItem
             {
                 ProductId = product.Id,
                 Name = product.Name,
                 Price = product.Price,
                 Quantity = quantity,
-                ImageUrl = product.ImageUrl
+                ImageBase64 = base64Image
             });
         }
 
@@ -51,6 +57,7 @@ public class CartController : Controller
 
         return RedirectToAction("Index", "Home");
     }
+
 
     public IActionResult Index()
     {

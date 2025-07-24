@@ -1,37 +1,55 @@
 ﻿@model WebApplication1.Models.Product
+
 @{
     ViewData["Title"] = "Edit Product";
 }
 
-<h2>Edit Product</h2>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="mb-4">Edit Product</h2>
 
-<form asp-action="Edit" method="post">
-    <input type="hidden" asp-for="Id" />
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control"></textarea>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Category" class="form-label"></label>
-        <input asp-for="Category" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="Price" class="form-label"></label>
-        <input asp-for="Price" class="form-control" type="number" step="0.01" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="StockQuantity" class="form-label"></label>
-        <input asp-for="StockQuantity" class="form-control" type="number" />
-    </div>
-    <div class="mb-3">
-        <label asp-for="ImageUrl" class="form-label"></label>
-        <input asp-for="ImageUrl" class="form-control" />
-    </div>
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
 
-    <button type="submit" class="btn btn-primary">Update</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-</form>
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Name</label>
+                    <input asp-for="Name" class="form-control" required />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Category" class="form-label">Category</label>
+                    <input asp-for="Category" class="form-control" required />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Price" class="form-label">Price</label>
+                    <input asp-for="Price" class="form-control" type="number" step="0.01" required />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="StockQuantity" class="form-label">Stock Quantity</label>
+                    <input asp-for="StockQuantity" class="form-control" type="number" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Current Image</label><br />
+                    <img src="@Url.Action("GetImage", "Inventory", new { id = Model.Id })" alt="Product Image" style="max-height: 150px;" class="mb-2" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Change Image (optional)</label>
+                    <input type="file" name="ImageFile" class="form-control" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>

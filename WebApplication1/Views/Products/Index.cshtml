@@ -7,10 +7,23 @@
 {
     <div class="col-md-3 mb-4">
         <div class="card h-100">
-            <img src="@product.ImageUrl" class="card-img-top" style="height:200px; object-fit:cover;" />
+            @if (product.ImageData != null && !string.IsNullOrEmpty(product.ImageMimeType))
+            {
+                <img src="@Url.Action("GetImage", "Inventory", new { id = product.Id })" 
+                     class="card-img-top" 
+                     style="height:200px; object-fit:cover;" 
+                     alt="@product.Name" />
+            }
+            else
+            {
+                <div class="d-flex justify-content-center align-items-center" 
+                     style="height:200px; background-color:#f0f0f0; color:#888;">
+                    No Image
+                </div>
+            }
             <div class="card-body">
                 <h5 class="card-title">@product.Name</h5>
-                <p class="card-text text-muted">$@product.Price</p>
+                <p class="card-text text-muted">$@product.Price.ToString("0.00")</p>
                 <a asp-controller="Product" asp-action="Details" asp-route-id="@product.Id" class="btn btn-primary btn-sm">View</a>
             </div>
         </div>

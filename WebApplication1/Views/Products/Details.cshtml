@@ -4,13 +4,23 @@
 
 <div class="row">
     <div class="col-md-5">
-        <img src="@Model.ImageUrl" class="img-fluid" />
+        @if (Model.ImageData != null && !string.IsNullOrEmpty(Model.ImageMimeType))
+        {
+            <img src="@Url.Action("GetImage", "Inventory", new { id = Model.Id })" class="img-fluid" alt="@Model.Name" />
+        }
+        else
+        {
+            <span class="text-muted">No image available</span>
+        }
     </div>
     <div class="col-md-7">
-        <h4 class="text-muted">$@Model.Price</h4>
+        <h4 class="text-muted">$@Model.Price.ToString("0.00")</h4>
         <p>@Model.Description</p>
         <p><strong>Category:</strong> @Model.Category</p>
         <p><strong>Stock:</strong> @Model.StockQuantity</p>
-        <a asp-controller="Cart" asp-action="Add" asp-route-id="@Model.Id" class="btn btn-success">Add to Cart</a>
+        <form asp-controller="Cart" asp-action="AddToCart" method="post">
+            <input type="hidden" name="productId" value="@Model.Id" />
+            <button type="submit" class="btn btn-success" @(Model.StockQuantity <= 0 ? "disabled" : "")>Add to Cart</button>
+        </form>
     </div>
 </div>

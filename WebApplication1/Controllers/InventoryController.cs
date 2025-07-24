@@ -33,36 +33,63 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
-        public IActionResult Add(Product product)
+        public IActionResult Add(Product product, IFormFile ImageFile)
         {
-            if (ModelState.IsValid)
+            if (ImageFile != null && ImageFile.Length > 0)
             {
-                _context.Products.Add(product);
-                _context.SaveChanges();
-                return RedirectToAction("Index");
+                using var ms = new MemoryStream();
+                ImageFile.CopyTo(ms);
+                product.ImageData = ms.ToArray();
+                product.ImageMimeType = ImageFile.ContentType;
             }
-            return View(product);
+
+            _context.Products.Add(product);
+            _context.SaveChanges();
+
+            return RedirectToAction("Index");
         }
+
 
         [HttpGet]
         public IActionResult Edit(int id)
         {
             var product = _context.Products.Find(id);
-            if (product == null) return NotFound();
+            if (product == null)
+            {
+                return NotFound();
+            }
             return View(product);
         }
 
         [HttpPost]
-        public IActionResult Edit(Product updatedProduct)
+        public async Task<IActionResult> Edit(int id, Product product, IFormFile? ImageFile)
         {
-            if (ModelState.IsValid)
+            if (id != product.Id)
+                return BadRequest();
+
+            var existingProduct = await _context.Products.FindAsync(id);
+            if (existingProduct == null)
+                return NotFound();
+
+           
+            existingProduct.Name = product.Name;
+            existingProduct.Description = product.Description;
+            existingProduct.Category = product.Category;
+            existingProduct.Price = product.Price;
+            existingProduct.StockQuantity = product.StockQuantity;
+
+            if (ImageFile != null && ImageFile.Length > 0)
             {
-                _context.Products.Update(updatedProduct);
-                _context.SaveChanges();
-                return RedirectToAction("Index");
+                using var memoryStream = new MemoryStream();
+                await ImageFile.CopyToAsync(memoryStream);
+                existingProduct.ImageData = memoryStream.ToArray();
+                existingProduct.ImageMimeType = ImageFile.ContentType;
             }
-            return View(updatedProduct);
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
         }
+
 
         [HttpGet]
         public IActionResult Delete(int id)
@@ -83,6 +110,17 @@ namespace WebApplication1.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        public IActionResult GetImage(int id)
+        {
+            var product = _context.Products.FirstOrDefault(p => p.Id == id);
+            if (product == null || product.ImageData == null || string.IsNullOrEmpty(product.ImageMimeType))
+            {
+                return NotFound();
+            }
+
+            return File(product.ImageData, product.ImageMimeType);
         }
     }
 }
