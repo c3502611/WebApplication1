@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using WebApplication1.Models;
 using WebApplication1.Data;
 
@@ -22,25 +23,25 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public IActionResult Login(string username, string password)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
 
             if (user != null)
             {
-                HttpContext.Session.SetString("User", user.Username);
-                HttpContext.Session.SetString("Role", user.Role);
-                return RedirectToAction("Index", "Home");
-            }
+                var hasher = new PasswordHasher<User>();
+                var result = hasher.VerifyHashedPassword(user, user.Password, password);
 
-            if (username == "admin" && password == "password")
-            {
-                HttpContext.Session.SetString("User", "Admin");
-                HttpContext.Session.SetString("Role", "Admin");
-                return RedirectToAction("Index", "Home");
+                if (result == PasswordVerificationResult.Success)
+                {
+                    HttpContext.Session.SetString("User", user.Username);
+                    HttpContext.Session.SetString("Role", user.Role);
+                    return RedirectToAction("Index", "Home");
+                }
             }
 
             ViewBag.Error = "Invalid username or password.";
             return View();
         }
+
 
 
         public IActionResult Logout()
@@ -70,13 +71,14 @@ namespace WebApplication1.Controllers
                 return View();
             }
 
+            var hasher = new PasswordHasher<User>();
             var newUser = new User
             {
                 Username = username,
                 Email = email,
-                Password = password,
                 Role = "Customer"
             };
+            newUser.Password = hasher.HashPassword(newUser, password); // hashed here
 
             _context.Users.Add(newUser);
             _context.SaveChanges();
