@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
-using WebApplication1.Data; 
+using WebApplication1.Data;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -58,7 +58,6 @@ public class CartController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-
     public IActionResult Index()
     {
         TempData.Keep("User");
@@ -85,11 +84,9 @@ public class CartController : Controller
         return RedirectToAction("Index");
     }
 
+    [HttpGet]
     public IActionResult Checkout()
     {
-        TempData.Keep("User");
-        TempData.Keep("Role");
-
         var cart = HttpContext.Session.GetObject<List<CartItem>>("Cart") ?? new List<CartItem>();
 
         if (!cart.Any())
@@ -98,25 +95,58 @@ public class CartController : Controller
             return RedirectToAction("Index");
         }
 
-        return View("Checkout", cart);
+        return View(new CheckoutInfo());
     }
 
-    public IActionResult Confirm()
+    [HttpPost]
+    public IActionResult Checkout(CheckoutInfo model)
     {
-        var cart = HttpContext.Session.GetObject<List<CartItem>>("Cart") ?? new List<CartItem>();
-
-        if (!cart.Any())
+        if (!ModelState.IsValid)
         {
-            TempData["Message"] = "Your cart is empty.";
+            TempData["Error"] = "Please fill out all required fields.";
+            return View(model);
+        }
+
+        var cart = HttpContext.Session.GetObject<List<CartItem>>("Cart");
+        if (cart == null || !cart.Any())
+        {
+            TempData["Error"] = "Cart is empty.";
             return RedirectToAction("Index");
         }
+
+        foreach (var item in cart)
+        {
+            var product = _context.Products.FirstOrDefault(p => p.Id == item.ProductId);
+            if (product == null)
+            {
+                TempData["Error"] = $"Product ID {item.ProductId} no longer exists.";
+                return RedirectToAction("Index");
+            }
+            if (product.StockQuantity < item.Quantity)
+            {
+                TempData["Error"] = $"Not enough stock for {product.Name}. Available: {product.StockQuantity}";
+                return RedirectToAction("Index");
+            }
+
+            product.StockQuantity -= item.Quantity;
+        }
+
+        _context.SaveChanges(); 
 
         HttpContext.Session.Remove("Cart");
 
+        TempData["Success"] = $"Order placed for {model.FullName}!";
+
+        return RedirectToAction("Confirm");
+    }
+
+
+    public IActionResult Confirm()
+    {
         TempData.Keep("User");
         TempData.Keep("Role");
-        ViewBag.Message = "Thank you! Your order has been placed.";
 
-        return View(cart);
+        ViewBag.Message = "Thank you! Your order has been placed.";
+        return View();
     }
 }

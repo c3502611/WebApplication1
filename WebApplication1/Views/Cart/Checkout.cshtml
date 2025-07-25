@@ -1,45 +1,58 @@
-﻿@{
+﻿@model WebApplication1.Models.CheckoutInfo
+
+@{
     ViewData["Title"] = "Checkout";
 }
 
 <h2 class="my-4">Checkout</h2>
 
-<form asp-action="Confirm" method="get">
+<form asp-action="Checkout" method="post">
     <div class="col-md-6">
-        <label for="inputName" class="form-label">Full Name</label>
-        <input type="text" class="form-control" id="inputName" placeholder="John Tan" required />
+        <label asp-for="FullName" class="form-label"></label>
+        <input asp-for="FullName" class="form-control" placeholder="John Tan" required />
+        <span asp-validation-for="FullName" class="text-danger"></span>
     </div>
 
     <div class="col-md-6">
-        <label for="inputEmail" class="form-label">Email</label>
-        <input type="email" class="form-control" id="inputEmail" placeholder="you@example.com" required />
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" type="email" class="form-control" placeholder="you@example.com" required />
+        <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
     <div class="col-12">
-        <label for="inputAddress" class="form-label">Shipping Address</label>
-        <input type="text" class="form-control" id="inputAddress" placeholder="123 Orchard Rd" required />
+        <label asp-for="Address" class="form-label"></label>
+        <input asp-for="Address" class="form-control" placeholder="123 Orchard Rd" required />
+        <span asp-validation-for="Address" class="text-danger"></span>
     </div>
 
     <div class="col-md-4">
-        <label for="inputCity" class="form-label">City</label>
-        <input type="text" class="form-control" id="inputCity" required />
+        <label asp-for="City" class="form-label"></label>
+        <input asp-for="City" class="form-control" required />
+        <span asp-validation-for="City" class="text-danger"></span>
     </div>
 
     <div class="col-md-4">
-        <label for="inputZip" class="form-label">Postal Code</label>
-        <input type="text" class="form-control" id="inputZip" required />
+        <label asp-for="PostalCode" class="form-label"></label>
+        <input asp-for="PostalCode" class="form-control" required />
+        <span asp-validation-for="PostalCode" class="text-danger"></span>
     </div>
 
     <div class="col-md-4">
-        <label for="inputPayment" class="form-label">Payment Method</label>
-        <select id="inputPayment" class="form-select" required>
-            <option selected>Credit Card</option>
-            <option>PayNow</option>
-            <option>PayPal</option>
+        <label asp-for="PaymentMethod" class="form-label"></label>
+        <select asp-for="PaymentMethod" class="form-select" required>
+            <option value="">-- Select Payment Method --</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="PayNow">PayNow</option>
+            <option value="PayPal">PayPal</option>
         </select>
+        <span asp-validation-for="PaymentMethod" class="text-danger"></span>
     </div>
 
     <div class="col-12 text-end">
-      <button type="submit" class="btn btn-primary mt-3">Confirm Order</button>
+        <button type="submit" class="btn btn-primary mt-3">Confirm Order</button>
     </div>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
