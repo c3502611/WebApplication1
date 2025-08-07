@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using WebApplication1.Data;
+using WebApplication1.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,12 +20,13 @@ public class CartController : Controller
     {
         var cart = HttpContext.Session.GetObject<List<CartItem>>("Cart") ?? new List<CartItem>();
 
-        var product = _context.Products.FirstOrDefault(p => p.Id == productId);
+        var product = _context.Products
+            .Include(p => p.Images)
+            .FirstOrDefault(p => p.Id == productId);
 
         if (product == null)
         {
-            TempData["Message"] = "Product not found.";
-            return RedirectToAction("Index", "Home");
+            return Json(new { success = false, message = "Product not found." });
         }
 
         var existingItem = cart.FirstOrDefault(c => c.ProductId == productId);
@@ -35,9 +38,10 @@ public class CartController : Controller
         else
         {
             string base64Image = null;
-            if (product.ImageData != null && !string.IsNullOrEmpty(product.ImageMimeType))
+            var firstImage = product.Images.FirstOrDefault();
+            if (firstImage != null && firstImage.ImageData != null && !string.IsNullOrEmpty(firstImage.ImageMimeType))
             {
-                base64Image = $"data:{product.ImageMimeType};base64,{Convert.ToBase64String(product.ImageData)}";
+                base64Image = $"data:{firstImage.ImageMimeType};base64,{Convert.ToBase64String(firstImage.ImageData)}";
             }
 
             cart.Add(new CartItem
@@ -52,10 +56,13 @@ public class CartController : Controller
 
         HttpContext.Session.SetObject("Cart", cart);
 
+        int cartCount = cart.Sum(c => c.Quantity);
+        TempData["CartCount"] = cartCount;
+
         TempData.Keep("User");
         TempData.Keep("Role");
 
-        return RedirectToAction("Index", "Home");
+        return Json(new { success = true, cartCount });
     }
 
     public IActionResult Index()
@@ -64,6 +71,9 @@ public class CartController : Controller
         TempData.Keep("Role");
 
         var cart = HttpContext.Session.GetObject<List<CartItem>>("Cart") ?? new List<CartItem>();
+        int cartCount = cart.Sum(c => c.Quantity);
+        TempData["CartCount"] = cartCount;
+
         return View(cart);
     }
 
@@ -76,6 +86,7 @@ public class CartController : Controller
         {
             cart.Remove(item);
             HttpContext.Session.SetObject("Cart", cart);
+            TempData["CartCount"] = cart.Sum(c => c.Quantity);
         }
 
         TempData.Keep("User");
@@ -131,15 +142,15 @@ public class CartController : Controller
             product.StockQuantity -= item.Quantity;
         }
 
-        _context.SaveChanges(); 
+        _context.SaveChanges();
 
         HttpContext.Session.Remove("Cart");
+        TempData["CartCount"] = 0;
 
         TempData["Success"] = $"Order placed for {model.FullName}!";
 
         return RedirectToAction("Confirm");
     }
-
 
     public IActionResult Confirm()
     {
@@ -148,5 +159,44 @@ public class CartController : Controller
 
         ViewBag.Message = "Thank you! Your order has been placed.";
         return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult UpdateQuantity(int productId, int quantity, string change)
+    {
+        var cart = HttpContext.Session.GetObject<List<CartItem>>("Cart") ?? new List<CartItem>();
+        var item = cart.FirstOrDefault(c => c.ProductId == productId);
+        if (item != null)
+        {
+            if (change == "increment")
+            {
+                item.Quantity++;
+            }
+            else if (change == "decrement" && item.Quantity > 1)
+            {
+                item.Quantity--;
+            }
+            else
+            {
+                if (quantity >= 1)
+                {
+                    item.Quantity = quantity;
+                }
+            }
+        }
+
+        HttpContext.Session.SetObject("Cart", cart);
+        TempData["CartCount"] = cart.Sum(c => c.Quantity);
+
+        TempData.Keep("User");
+        TempData.Keep("Role");
+
+        return Json(new
+        {
+            totalPrice = item.Price * item.Quantity,
+            cartTotal = cart.Sum(i => i.Price * i.Quantity),
+            updatedQuantity = item.Quantity
+        });
     }
 }

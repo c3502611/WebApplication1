@@ -62,12 +62,34 @@ namespace WebApplication1.Controllers
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
                 ViewBag.Error = "All fields are required.";
+                ViewBag.Username = username;
+                ViewBag.Email = email;
                 return View();
             }
 
             if (password != confirmPassword)
             {
                 ViewBag.Error = "Passwords do not match.";
+                ViewBag.Username = username;
+                ViewBag.Email = email;
+                return View();
+            }
+
+            bool usernameExists = _context.Users.Any(u => u.Username == username);
+            if (usernameExists)
+            {
+                ViewBag.Error = "Username already taken. Please choose another.";
+                ViewBag.Username = username;
+                ViewBag.Email = email;
+                return View();
+            }
+
+            bool emailExists = _context.Users.Any(u => u.Email == email);
+            if (emailExists)
+            {
+                ViewBag.Error = "Email already registered. Please use a different email.";
+                ViewBag.Username = username;
+                ViewBag.Email = email;
                 return View();
             }
 
@@ -78,7 +100,7 @@ namespace WebApplication1.Controllers
                 Email = email,
                 Role = "Customer"
             };
-            newUser.Password = hasher.HashPassword(newUser, password); // hashed here
+            newUser.Password = hasher.HashPassword(newUser, password);
 
             _context.Users.Add(newUser);
             _context.SaveChanges();

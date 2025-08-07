@@ -1,4 +1,4 @@
-﻿@model WebApplication1.Models.Product
+﻿@model WebApplication1.Models.ProductViewModel
 
 @{
     ViewData["Title"] = "Edit Product";
@@ -22,9 +22,18 @@
                     <textarea asp-for="Description" class="form-control" rows="3" required></textarea>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Category" class="form-label">Category</label>
-                    <input asp-for="Category" class="form-control" required />
+                <div class="form-group mb-3">
+                    <label asp-for="CategoryId" class="control-label"></label>
+                    <select asp-for="CategoryId" asp-items="@(new SelectList(Model.Categories, "Id", "Name"))" class="form-control" required>
+                        <option value="">-- Select Category --</option>
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Tags" class="control-label"></label>
+                    <input asp-for="Tags" class="form-control" />
+                    <span asp-validation-for="Tags" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
@@ -38,13 +47,40 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Current Image</label><br />
-                    <img src="@Url.Action("GetImage", "Inventory", new { id = Model.Id })" alt="Product Image" style="max-height: 150px;" class="mb-2" />
+                    <label class="form-label">Current Images</label><br />
+                    <div class="d-flex flex-wrap">
+                        @if (Model.ExistingImages != null && Model.ExistingImages.Any())
+                        {
+                            foreach (var img in Model.ExistingImages)
+                            {
+                                var imgSrc = !string.IsNullOrEmpty(img.ImagePath) 
+                                    ? Url.Content("~/" + img.ImagePath) 
+                                    : (img.ImageData != null 
+                                        ? $"data:{img.ImageMimeType};base64,{Convert.ToBase64String(img.ImageData)}" 
+                                        : Url.Content("~/images/products/default.png"));
+
+                                <div class="position-relative m-2 image-wrapper">
+                                    <img src="@imgSrc" alt="Product Image" class="img-thumbnail" style="max-height: 150px;" />
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 remove-btn"
+                                            onclick="removeImage(this, '@img.Id')">×</button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p>No images available.</p>
+                        }
+                    </div>
+
+                    <!-- Hidden inputs for images marked to remove -->
+                    <div id="ImagesToRemoveContainer"></div>
                 </div>
 
+                <!-- Upload New Images -->
                 <div class="mb-3">
-                    <label class="form-label">Change Image (optional)</label>
-                    <input type="file" name="ImageFile" class="form-control" />
+                    <label class="form-label mt-4">Add/Replace Images (you can select multiple)</label>
+                    <input type="file" name="ImageFiles" class="form-control" multiple accept="image/*" />
                 </div>
 
                 <button type="submit" class="btn btn-primary">Update</button>
@@ -53,3 +89,34 @@
         </div>
     </div>
 </div>
+
+<!-- JS for Remove Image on Hover -->
+<script>
+    function removeImage(button, imageId) {
+        // Remove image preview from DOM
+        button.closest('.image-wrapper').remove();
+
+        // Add hidden input to track images marked for removal
+        const container = document.getElementById('ImagesToRemoveContainer');
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'ImagesToRemove';
+        hiddenInput.value = imageId;
+        container.appendChild(hiddenInput);
+    }
+</script>
+
+<style>
+    .image-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .remove-btn {
+        display: none;
+    }
+
+    .image-wrapper:hover .remove-btn {
+        display: block;
+    }
+</style>

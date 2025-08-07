@@ -3,6 +3,32 @@
     ViewData["Title"] = "Your Cart";
 }
 
+<style>
+    table.table-bordered th.text-end,
+    table.table-bordered td.text-end {
+        width: 100px;
+        white-space: nowrap;
+        text-align: right;
+    }
+
+
+    table.table-bordered th.text-center,
+    table.table-bordered td.text-center {
+        width: 120px;
+        white-space: nowrap;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+
 <h2>Your Shopping Cart</h2>
 
 @if (!Model.Any())
@@ -18,35 +44,108 @@ else
                 <th class="text-end">Price</th>
                 <th class="text-center">Qty</th>
                 <th class="text-end">Total</th>
-                <th class="text-center">Remove</th> 
+                <th class="text-center">Remove</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>
-                        <img src="@Url.Action("GetImage", "Inventory", new { id = item.ProductId })" 
-                             style="height: 50px; margin-right: 10px;" alt="@item.Name" />
-                        @item.Name
-                    </td>
-                    <td class="text-end">$@((item.Price).ToString("0.00"))</td>
-                    <td class="text-center">@item.Quantity</td>
-                    <td class="text-end">$@((item.Price * item.Quantity).ToString("0.00"))</td>
-                    <td class="text-center">
-                        <form asp-action="Remove" method="post">
-                            <input type="hidden" name="productId" value="@item.ProductId" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
-                        </form>
-                    </td>
-                </tr>
-            }
+           @foreach (var item in Model)
+{
+    <tr>
+        <td>
+            <img src="@Url.Action("GetImage", "Inventory", new { id = item.ProductId })"
+                 style="height: 50px; margin-right: 10px;" alt="@item.Name" />
+            @item.Name
+        </td>
+        <td class="text-end">$@item.Price.ToString("0.00")</td>
+        <td class="text-center">
+            <form asp-action="UpdateQuantity" method="post" class="d-flex justify-content-center align-items-center update-quantity-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="productId" value="@item.ProductId" />
+                <button type="submit" name="change" value="decrement" class="btn btn-sm btn-outline-secondary me-1">-</button>
+                <input type="number" name="quantity" value="@item.Quantity" min="1" class="form-control form-control-sm text-center" style="width: 60px;" />
+                <button type="submit" name="change" value="increment" class="btn btn-sm btn-outline-secondary ms-1">+</button>
+            </form>
+        </td>
+        <td class="text-end">$@((item.Price * item.Quantity).ToString("0.00"))</td>
+        <td class="text-center">
+            <form asp-action="Remove" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="productId" value="@item.ProductId" />
+                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+            </form>
+        </td>
+    </tr>
+}
+
         </tbody>
     </table>
+
+    <div class="text-end mt-3 fw-bold fs-5" id="cart-total">
+        Total: $@((Model.Sum(i => i.Price * i.Quantity)).ToString("0.00"))
+    </div>
 
     <div class="text-end mt-4">
         <a asp-controller="Cart" asp-action="Checkout" class="btn btn-success">
             Proceed to Checkout
         </a>
     </div>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.update-quantity-form').forEach(form => {
+            let clickedButtonValue = null;
+
+            form.querySelectorAll('button[name="change"]').forEach(button => {
+                button.addEventListener('click', function () {
+                    clickedButtonValue = this.value;
+                });
+            });
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+
+                if (clickedButtonValue) {
+                    formData.set('change', clickedButtonValue);
+                } else {
+                    formData.set('change', '');
+                }
+
+                fetch('@Url.Action("UpdateQuantity", "Cart")', {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': formData.get('__RequestVerificationToken')
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not OK');
+                    return response.json();
+                })
+                .then(data => {
+                    const productRow = form.closest('tr');
+                    const totalCells = productRow.querySelectorAll('td.text-end');
+                    const totalCell = totalCells[totalCells.length - 1];
+                    if (totalCell) {
+                        totalCell.textContent = '$' + data.totalPrice.toFixed(2);
+                    }
+
+                    const quantityInput = form.querySelector('input[name="quantity"]');
+                    if (quantityInput) {
+                        quantityInput.value = data.updatedQuantity;
+                    }
+
+                    const cartTotalElement = document.getElementById('cart-total');
+                    if (cartTotalElement) {
+                        cartTotalElement.textContent = 'Total: $' + data.cartTotal.toFixed(2);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+
+                clickedButtonValue = null;
+            });
+        });
+    </script>
 }

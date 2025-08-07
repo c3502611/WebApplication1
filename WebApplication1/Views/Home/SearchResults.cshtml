@@ -1,0 +1,103 @@
+﻿@model IEnumerable<WebApplication1.Models.Product>
+@{
+    ViewData["Title"] = "Search Results";
+    var searchQuery = Context.Request.Query["query"].ToString();
+}
+
+<div class="container my-5">
+
+    @if (!string.IsNullOrWhiteSpace(searchQuery))
+    {
+        <h2>Search Results</h2>
+        <h5 class="text-muted mb-4">Showing results for "<strong>@searchQuery</strong>"</h5>
+    }
+    else
+    {
+        <h2>Our Products</h2>
+    }
+
+    @if (!Model.Any())
+    {
+        <p class="text-danger">No products matched your search.</p>
+    }
+
+    <div class="row g-4">
+        @foreach (var product in Model)
+        {
+            var imageId = product.Images?.FirstOrDefault()?.Id;
+
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm product-card">
+                    <div class="image-container position-relative">
+                        <a asp-action="Product" asp-route-id="@product.Id" class="text-decoration-none text-dark">
+                           <img src="@Url.Action("GetImage", "Inventory", new { id = imageId })"
+     class="card-img-top product-image img-fluid"
+     style="height: 250px; object-fit: cover;"
+     alt="@product.Name" />
+                        </a>
+
+                        <form asp-controller="Cart" asp-action="AddToCart" method="post" class="add-to-cart-form">
+                            <input type="hidden" name="productId" value="@product.Id" />
+                            <button type="submit" class="add-to-cart-icon-btn">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title">@product.Name</h5>
+                        <p class="card-text">$@product.Price.ToString("0.00")</p>
+                    </div>
+
+                    <div class="card-footer bg-transparent border-0">
+                        <a class="btn btn-sm btn-outline-primary w-100" asp-action="Product" asp-route-id="@product.Id">View</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Toast Notification Markup -->
+<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1055">
+    <div id="cartToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Product added to cart!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add to Cart with toast feedback
+        document.querySelectorAll('.add-to-cart-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    if (response.ok) {
+                        const toastEl = document.getElementById('cartToast');
+                        const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+
+                        toast.show();
+
+                        // Auto-hide after 2 seconds
+                        setTimeout(() => {
+                            toast.hide();
+                        }, 2000);
+                    }
+                }).catch(err => {
+                    console.error('Add to cart failed:', err);
+                });
+            });
+        });
+    </script>
+}

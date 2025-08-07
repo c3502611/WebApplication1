@@ -5,11 +5,14 @@
 <div class="row">
 @foreach (var product in Model)
 {
+    var firstImage = product.Images?.FirstOrDefault();
     <div class="col-md-3 mb-4">
         <div class="card h-100">
-            @if (product.ImageData != null && !string.IsNullOrEmpty(product.ImageMimeType))
+            @if (firstImage != null && firstImage.ImageData != null && !string.IsNullOrEmpty(firstImage.ImageMimeType))
             {
-                <img src="@Url.Action("GetImage", "Inventory", new { id = product.Id })" 
+                var base64 = Convert.ToBase64String(firstImage.ImageData);
+                var imgSrc = $"data:{firstImage.ImageMimeType};base64,{base64}";
+                <img src="@imgSrc" 
                      class="card-img-top" 
                      style="height:200px; object-fit:cover;" 
                      alt="@product.Name" />
@@ -23,7 +26,21 @@
             }
             <div class="card-body">
                 <h5 class="card-title">@product.Name</h5>
-                <p class="card-text text-muted">$@product.Price.ToString("0.00")</p>
+                <p class="card-text text-muted mb-1">$@product.Price.ToString("0.00")</p>
+               <p class="card-text">
+    <small>
+        @if (product.StockQuantity == 0)
+        {
+            <span class="text-danger">Unavailable</span>
+        }
+        else if (product.StockQuantity < 30)
+        {
+            <span class="text-warning">Running out: @product.StockQuantity left</span>
+        }
+        <!-- else: show nothing if stock is 30 or more -->
+    </small>
+</p>
+
                 <a asp-controller="Product" asp-action="Details" asp-route-id="@product.Id" class="btn btn-primary btn-sm">View</a>
             </div>
         </div>

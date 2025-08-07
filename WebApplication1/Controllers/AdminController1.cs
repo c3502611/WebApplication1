@@ -1,11 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
-using System.Linq;
+using WebApplication1.Data;      
+using Microsoft.EntityFrameworkCore; 
 
 namespace WebApplication1.Controllers
 {
     public class AdminController : Controller
     {
+        private readonly AppDbContext _context;
+
+        public AdminController(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Dashboard()
         {
             if (TempData["Role"]?.ToString() != "Admin")
@@ -13,14 +20,11 @@ namespace WebApplication1.Controllers
                 return RedirectToAction("AccessDenied", "Auth");
             }
 
-            var products = MockData.GetProducts();
-            var orders = MockData.GetOrders();
+            var productCount = _context.Products.Count();
 
-            ViewBag.ProductCount = products.Count;
-            ViewBag.OrderCount = orders.Count;
+            ViewBag.ProductCount = productCount;
 
             return View();
         }
-
     }
 }

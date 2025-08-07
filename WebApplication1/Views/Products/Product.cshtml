@@ -5,17 +5,21 @@
 
 <div class="row my-5">
     <div class="col-md-5">
-        @if (Model.ImageData != null && !string.IsNullOrEmpty(Model.ImageMimeType))
-        {
-            <img src="@Url.Action("GetImage", "Inventory", new { id = Model.Id })" 
-                 alt="@Model.Name" class="img-fluid rounded" />
-        }
-        else
-        {
-            <div class="d-flex justify-content-center align-items-center bg-light rounded" 
-                 style="height: 300px; color: #888;">
-                No Image Available
-            </div>
+        @{
+            var firstImage = Model.Images?.FirstOrDefault();
+            if (firstImage != null && firstImage.ImageData != null && !string.IsNullOrEmpty(firstImage.ImageMimeType))
+            {
+                var base64 = Convert.ToBase64String(firstImage.ImageData);
+                var imgSrc = $"data:{firstImage.ImageMimeType};base64,{base64}";
+                <img src="@imgSrc" alt="@Model.Name" class="img-fluid rounded" />
+            }
+            else
+            {
+                <div class="d-flex justify-content-center align-items-center bg-light rounded" 
+                     style="height: 300px; color: #888;">
+                    No Image Available
+                </div>
+            }
         }
     </div>
 
@@ -25,10 +29,15 @@
         <h4 class="text-success mb-3">$@Model.Price.ToString("0.00")</h4>
         <p>@Model.Description</p>
 
-        <p>
-            <strong>Stock:</strong> 
-            @(Model.StockQuantity > 0 ? $"{Model.StockQuantity} available" : "Out of stock")
-        </p>
+      @if (Model.StockQuantity == 0)
+{
+    <p><strong>Stock:</strong> <span class="text-danger">Unavailable</span></p>
+}
+else if (Model.StockQuantity < 30)
+{
+    <p><strong>Stock:</strong> <span class="text-warning">Running out: @Model.StockQuantity left</span></p>
+}
+
 
         <form method="post" asp-controller="Cart" asp-action="AddToCart">
             <input type="hidden" name="productId" value="@Model.Id" />

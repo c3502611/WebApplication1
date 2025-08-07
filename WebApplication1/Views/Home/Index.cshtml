@@ -1,36 +1,22 @@
-﻿@model IEnumerable<WebApplication1.Models.Product>
+﻿@using WebApplication1.Helpers
+@model IEnumerable<WebApplication1.Models.Product>
+
 @{
-    ViewData["Title"] = "Products";
+    ViewData["Title"] = "Search Results";
     var searchQuery = Context.Request.Query["query"].ToString();
+    var cartCount = Context.Session.GetObject<List<WebApplication1.Models.CartItem>>("Cart")?.Sum(c => c.Quantity) ?? 0;
 }
 
 <div class="container my-5">
 
-    @if (TempData["RegisterSuccess"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" id="regSuccessAlert">
-            @TempData["RegisterSuccess"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <h2 class="mb-4">Our Products</h2>
-
-@section Scripts {
-    <script>
-        setTimeout(function () {
-            var alertElement = document.getElementById('regSuccessAlert');
-            if (alertElement) {
-                var bsAlert = new bootstrap.Alert(alertElement);
-                bsAlert.close();
-            }
-        }, 3000);
-    </script>
-}
-
     @if (!string.IsNullOrWhiteSpace(searchQuery))
     {
-        <h5 class="text-muted">Showing results for "<strong>@searchQuery</strong>"</h5>
+        <h2>Search Results</h2>
+        <h5 class="text-muted mb-4">Showing results for "<strong>@searchQuery</strong>"</h5>
+    }
+    else
+    {
+        <h2>Our Products</h2>
     }
 
     @if (!Model.Any())
@@ -42,14 +28,32 @@
         @foreach (var product in Model)
         {
             <div class="col-sm-6 col-md-4 col-lg-3">
-                <div class="card h-100 shadow-sm">
-                    <a asp-action="Product" asp-route-id="@product.Id" class="text-decoration-none text-dark">
-                        <img src="@Url.Action("GetImage", "Inventory", new { id = product.Id })" class="card-img-top" alt="@product.Name" />
-                        <div class="card-body">
-                            <h5 class="card-title">@product.Name</h5>
-                            <p class="card-text">$@product.Price.ToString("0.00")</p>
-                        </div>
-                    </a>
+                <div class="card h-100 shadow-sm product-card">
+                    <div class="image-container position-relative">
+                        <a asp-action="Product" asp-route-id="@product.Id" class="text-decoration-none text-dark">
+                            <img
+    src="@(product.Images != null && product.Images.Any()
+        ? Url.Action("GetImage", "Inventory", new { id = product.Images.First().Id })
+        : Url.Content("~/images/products/default.png"))"
+    class="card-img-top product-image img-fluid"
+    style="height: 250px; object-fit: cover;"
+    alt="@product.Name" />
+
+                        </a>
+
+                        <form asp-controller="Cart" asp-action="AddToCart" method="post" class="add-to-cart-form">
+                            <input type="hidden" name="productId" value="@product.Id" />
+                            <button type="submit" class="add-to-cart-icon-btn">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title">@product.Name</h5>
+                        <p class="card-text">$@product.Price.ToString("0.00")</p>
+                    </div>
+
                     <div class="card-footer bg-transparent border-0">
                         <a class="btn btn-sm btn-outline-primary w-100" asp-action="Product" asp-route-id="@product.Id">View</a>
                     </div>
@@ -58,3 +62,63 @@
         }
     </div>
 </div>
+
+<!-- Toast Notification Markup -->
+<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1055">
+    <div id="cartToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Product added to cart!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateCartBadge(count) {
+            const badge = document.getElementById('cart-count');
+            if (!badge) return;
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize badge on page load with server-side count
+            const initialCount = parseInt('@cartCount') || 0;
+            updateCartBadge(initialCount);
+
+            document.querySelectorAll('.add-to-cart-form, form[asp-action="AddToCart"]').forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(form);
+
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show toast
+                            const toastEl = document.getElementById('cartToast');
+                            const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+                            toast.show();
+                            setTimeout(() => toast.hide(), 2000);
+
+                            // Update badge live
+                            updateCartBadge(data.cartCount);
+                        } else {
+                            console.error('Add to cart failed:', data.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Add to cart failed:', err);
+                    });
+                });
+            });
+        });
+    </script>
+}
