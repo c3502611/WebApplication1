@@ -85,7 +85,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize badge on page load with server-side count
+           
             const initialCount = parseInt('@cartCount') || 0;
             updateCartBadge(initialCount);
 
@@ -102,13 +102,12 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Show toast
+                       
                             const toastEl = document.getElementById('cartToast');
                             const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
                             toast.show();
                             setTimeout(() => toast.hide(), 2000);
 
-                            // Update badge live
                             updateCartBadge(data.cartCount);
                         } else {
                             console.error('Add to cart failed:', data.message);

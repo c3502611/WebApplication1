@@ -64,7 +64,6 @@ a, a:hover, a:focus {
     color: #8ab4f8; 
 }
 
-/* Backgrounds and subtle borders */
 .navbar,
 .dropdown-menu,
 .card,
@@ -98,7 +97,7 @@ select {
     color: #bbb;
 }
 
-/* Toast background */
+
 .toast.bg-success {
     background-color: #198754 !important;
 }
@@ -121,7 +120,7 @@ select {
     border: 1px solid #666 !important;
 }
 
-/* Cards and other components adjustments */
+
 .card {
     border: 1px solid #555 !important;
     background-color: #5c8a8a;
@@ -147,22 +146,38 @@ html, body {
     color: #fff !important;
 }
 
-    /* Force dropdown menu background and text color */
-    .navbar .dropdown-menu {
+
+.navbar .dropdown-menu 
+    {
         background-color: #4a4a4a !important;
         color: #ffffff !important;
     }
 
-        /* Dropdown item text */
-        .navbar .dropdown-menu .dropdown-item {
-            background-color: #4a4a4a !important;
-            color: #ffffff !important;
-        }
 
-            /* Highlighted dropdown item (hover or active) */
-            .navbar .dropdown-menu .dropdown-item:hover,
-            .navbar .dropdown-menu .dropdown-item:focus,
-            .navbar .dropdown-menu .dropdown-item.active {
-                background-color: #ffffff !important;
-                color: #4a4a4a !important;
-            }
+.navbar .dropdown-menu .dropdown-item 
+    {
+        background-color: #4a4a4a !important;
+        color: #ffffff !important;
+    }
+
+    
+.navbar .dropdown-menu .dropdown-item:hover,
+.navbar .dropdown-menu .dropdown-item:focus,
+.navbar .dropdown-menu .dropdown-item.active 
+    {
+       background-color: #ffffff !important;
+       color: #4a4a4a !important;
+    }
+
+.col-lg-3 .list-group-item,
+.col-lg-3 .list-group-item .fw-semibold,
+.col-lg-3 .list-group-item small
+    {
+        color: #ffffff !important;
+    }
+
+    
+.col-lg-3 .list-group-item:hover
+    {
+        color: #ffffff !important;
+    }

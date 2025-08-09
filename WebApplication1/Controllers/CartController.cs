@@ -58,7 +58,7 @@ public class CartController : Controller
 
         int cartCount = cart.Sum(c => c.Quantity);
         TempData["CartCount"] = cartCount;
-
+ 
         TempData.Keep("User");
         TempData.Keep("Role");
 

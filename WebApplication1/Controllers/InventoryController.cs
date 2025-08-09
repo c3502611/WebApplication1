@@ -23,7 +23,7 @@ namespace WebApplication1.Controllers
             _env = env;
         }
 
-        // GET: /Inventory
+
         public IActionResult Index()
         {
             if (HttpContext.Session.GetString("Role") != "Admin")
@@ -40,7 +40,7 @@ namespace WebApplication1.Controllers
             return View(products);
         }
 
-        // GET: /Inventory/Add
+    
         [HttpPost]
         public async Task<IActionResult> Add(ProductViewModel model, List<IFormFile> ImageFiles)
         {
@@ -71,7 +71,7 @@ namespace WebApplication1.Controllers
                         var imagePath = Path.Combine("images/products", uniqueFileName).Replace("\\", "/");
                         var fullFilePath = Path.Combine(_env.WebRootPath, imagePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
 
-                        // Copy file to memory first
+
                         byte[] imageData;
                         using (var ms = new MemoryStream())
                         {
@@ -79,7 +79,7 @@ namespace WebApplication1.Controllers
                             imageData = ms.ToArray();
                         }
 
-                        // Save to disk
+                       
                         await System.IO.File.WriteAllBytesAsync(fullFilePath, imageData);
 
                         product.Images.Add(new ItemImage
@@ -128,7 +128,7 @@ namespace WebApplication1.Controllers
 
             if (ModelState.IsValid)
             {
-                // Update product fields
+                
                 product.Name = model.Name;
                 product.Description = model.Description;
                 product.CategoryId = model.CategoryId;
@@ -136,7 +136,7 @@ namespace WebApplication1.Controllers
                 product.StockQuantity = model.StockQuantity;
                 product.Tags = model.Tags;
 
-                // Remove selected images
+                
                 if (model.ImagesToRemove != null && model.ImagesToRemove.Any())
                 {
                     var imagesToDelete = product.Images
@@ -160,7 +160,7 @@ namespace WebApplication1.Controllers
                 var uploadFolder = Path.Combine(_env.WebRootPath, "images", "products");
                 Directory.CreateDirectory(uploadFolder);
 
-                // Add new images
+                
                 if (ImageFiles != null && ImageFiles.Any())
                 {
                     foreach (var imageFile in ImageFiles)
@@ -169,7 +169,7 @@ namespace WebApplication1.Controllers
                         var imagePath = Path.Combine("images/products", uniqueFileName).Replace("\\", "/");
                         var fullFilePath = Path.Combine(_env.WebRootPath, imagePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
 
-                        // Copy file to memory
+                       
                         byte[] imageData;
                         using (var ms = new MemoryStream())
                         {
@@ -177,7 +177,7 @@ namespace WebApplication1.Controllers
                             imageData = ms.ToArray();
                         }
 
-                        // Save to disk
+                        
                         await System.IO.File.WriteAllBytesAsync(fullFilePath, imageData);
 
                         product.Images.Add(new ItemImage
@@ -248,7 +248,7 @@ namespace WebApplication1.Controllers
 
             if (product != null)
             {
-                // Delete image files on disk
+                
                 foreach (var image in product.Images)
                 {
                     if (!string.IsNullOrEmpty(image.ImagePath))

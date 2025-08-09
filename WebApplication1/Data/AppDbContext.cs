@@ -7,7 +7,6 @@ namespace WebApplication1.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        // DbSets for your entities
         public DbSet<Product> Products { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<ItemImage> ItemImages { get; set; }
@@ -30,21 +29,21 @@ namespace WebApplication1.Data
                 new Category { Id = 7, Name = "Socks" }
             );
 
-            // One-to-many: Product has many ItemImages
+           
             modelBuilder.Entity<Product>()
                 .HasMany(p => p.Images)
                 .WithOne(i => i.Product)
                 .HasForeignKey(i => i.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // One-to-many: Category has many Products
+            
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull); 
 
-            // Optional: Make Tags column optional and max length
+           
             modelBuilder.Entity<Product>()
                 .Property(p => p.Tags)
                 .HasMaxLength(500)

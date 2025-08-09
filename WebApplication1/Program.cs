@@ -13,7 +13,6 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register ImageMigrationService
 builder.Services.AddTransient<ImageMigrationService>();
 
 var app = builder.Build();
@@ -29,12 +28,10 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Run startup tasks
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    // Seed admin user
     if (!context.Users.Any(u => u.Username == "admin"))
     {
         var hasher = new PasswordHasher<User>();

@@ -73,11 +73,11 @@
                         }
                     </div>
 
-                    <!-- Hidden inputs for images marked to remove -->
+
                     <div id="ImagesToRemoveContainer"></div>
                 </div>
 
-                <!-- Upload New Images -->
+
                 <div class="mb-3">
                     <label class="form-label mt-4">Add/Replace Images (you can select multiple)</label>
                     <input type="file" name="ImageFiles" class="form-control" multiple accept="image/*" />
@@ -90,13 +90,13 @@
     </div>
 </div>
 
-<!-- JS for Remove Image on Hover -->
+
 <script>
     function removeImage(button, imageId) {
-        // Remove image preview from DOM
+
         button.closest('.image-wrapper').remove();
 
-        // Add hidden input to track images marked for removal
+
         const container = document.getElementById('ImagesToRemoveContainer');
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';

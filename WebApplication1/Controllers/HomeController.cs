@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;  // <-- for Include()
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using WebApplication1.Data;
 using WebApplication1.Models;
@@ -19,7 +19,7 @@ namespace WebApplication1.Controllers
 
         public IActionResult Index(string query)
         {
-            IQueryable<Product> products = _context.Products.Include(p => p.Images); // <-- Include Images
+            IQueryable<Product> products = _context.Products.Include(p => p.Images);
 
             if (!string.IsNullOrWhiteSpace(query))
             {
